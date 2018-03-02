@@ -30,13 +30,13 @@ describe('test/index.test.js', () => {
       follower = cluster(RegistryClient, { port, isLeader: false }).create();
     });
 
-    afterEach(function* () {
+    afterEach(async function() {
       assert(serverMap.has(port) === true);
-      yield Promise.race([
+      await Promise.race([
         cluster.close(follower),
         follower.await('error'),
       ]);
-      yield Promise.race([
+      await Promise.race([
         cluster.close(leader),
         leader.await('error'),
       ]);
@@ -107,7 +107,7 @@ describe('test/index.test.js', () => {
       });
     });
 
-    it('should should not close net.Server if other client is using same port', function* () {
+    it('should should not close net.Server if other client is using same port', async function() {
       class AnotherClient extends Base {
         constructor() {
           super();
@@ -115,18 +115,18 @@ describe('test/index.test.js', () => {
         }
       }
       const anotherleader = cluster(AnotherClient, { port, isLeader: true }).create();
-      yield anotherleader.ready();
+      await anotherleader.ready();
 
       // assert has problem with global scope virable
       // assert(serverMap.has(port) === true);
       if (!serverMap.has(port)) throw new Error();
-      yield cluster.close(anotherleader);
+      await cluster.close(anotherleader);
 
       // leader is using the same port, so anotherleader.close should not close the net.Server
       if (!serverMap.has(port)) throw new Error();
     });
 
-    it('should realClient.close be a generator function ok', function* () {
+    it('should realClient.close be a generator function ok', async function() {
       class RealClientWithGeneratorClose extends Base {
         constructor() {
           super();
@@ -138,8 +138,8 @@ describe('test/index.test.js', () => {
         }
       }
       const anotherleader = cluster(RealClientWithGeneratorClose, { port, isLeader: true }).create();
-      yield anotherleader.ready();
-      yield cluster.close(anotherleader);
+      await anotherleader.ready();
+      await cluster.close(anotherleader);
       // make sure real client is closed;
       // assert has problem with global scope virable
       if (anotherleader[symbols.innerClient]._realClient.closed !== true) {
@@ -147,7 +147,7 @@ describe('test/index.test.js', () => {
       }
     });
 
-    it('should realClient.close be a normal function ok', function* () {
+    it('should realClient.close be a normal function ok', async function() {
       class RealClientWithNormalClose extends Base {
         constructor() {
           super();
@@ -158,8 +158,8 @@ describe('test/index.test.js', () => {
         }
       }
       const anotherleader = cluster(RealClientWithNormalClose, { port, isLeader: true }).create();
-      yield anotherleader.ready();
-      yield cluster.close(anotherleader);
+      await anotherleader.ready();
+      await cluster.close(anotherleader);
       // make sure real client is closed;
       // assert has problem with global scope virable
       if (anotherleader[symbols.innerClient]._realClient.closed !== true) {
@@ -167,7 +167,7 @@ describe('test/index.test.js', () => {
       }
     });
 
-    it('should realClient.close be a function returning promise ok', function* () {
+    it('should realClient.close be a function returning promise ok', async function() {
       class RealClientWithCloseReturningPromise extends Base {
         constructor() {
           super();
@@ -178,8 +178,8 @@ describe('test/index.test.js', () => {
         }
       }
       const anotherleader = cluster(RealClientWithCloseReturningPromise, { port, isLeader: true }).create();
-      yield anotherleader.ready();
-      yield cluster.close(anotherleader);
+      await anotherleader.ready();
+      await cluster.close(anotherleader);
       // make sure real client is closed;
       // assert has problem with global scope virable
       if (anotherleader[symbols.innerClient]._realClient.closed !== true) {
@@ -303,7 +303,7 @@ describe('test/index.test.js', () => {
       }
     });
 
-    it('should symbol function not delegated', function* () {
+    it('should symbol function not delegated', () => {
       assert(!leader[SYMBOL_FN]);
       assert(!follower[SYMBOL_FN]);
     });
@@ -483,15 +483,15 @@ describe('test/index.test.js', () => {
     let leader;
     let follower;
     let follower2;
-    before(function* () {
+    before(() => {
       leader = cluster(RegistryClient, { isLeader: true, port, isBroadcast: false }).create(4322, '224.5.6.9');
       follower = cluster(RegistryClient, { isLeader: false, port, isBroadcast: false }).create(4322, '224.5.6.9');
       follower2 = cluster(RegistryClient, { isLeader: false, port, isBroadcast: false }).create(4322, '224.5.6.9');
     });
-    after(function* () {
-      yield follower.close();
-      yield follower2.close();
-      yield leader.close();
+    after(async function() {
+      await follower.close();
+      await follower2.close();
+      await leader.close();
     });
 
 
@@ -541,13 +541,13 @@ describe('test/index.test.js', () => {
     let client_1;
     let client_2;
     let client_3;
-    before(function* () {
+    before(async function() {
       client_1 = cluster(RegistryClient, { port }).create(4323, '224.5.6.10');
       client_2 = cluster(RegistryClient, { port }).create(4323, '224.5.6.10');
       client_3 = cluster(RegistryClient, { port }).create(4323, '224.5.6.10');
-      yield client_1.ready();
-      yield client_2.ready();
-      yield client_3.ready();
+      await client_1.ready();
+      await client_2.ready();
+      await client_3.ready();
     });
 
     after(() => {
